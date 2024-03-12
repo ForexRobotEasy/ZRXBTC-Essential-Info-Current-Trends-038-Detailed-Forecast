@@ -1,0 +1,130 @@
+mql5
+// ZRXBTC: Essential Info, Current Trends & Detailed Forecast
+// Developer's site: forexroboteasy.com
+// Development: Forex Robot Easy Team
+
+// Include necessary libraries and dependencies
+
+#include <Trade\Trade.mqh> // for trading functions
+#include <Array\ArrayObj.mqh> // for array manipulation
+#include <ChartObjects\ChartObjectText.mqh> // for visualization
+
+// Define global variables
+
+input int riskPercentage = 2; // risk percentage for position sizing
+input double stopLossPercentage = 1; // stop-loss percentage for risk management
+input double trailingStopPercentage = 0.5; // trailing stop percentage for risk management
+
+// Define trading function
+
+void tradeZRXBTC()
+{
+   // Connect to cryptocurrency exchange API
+   if (!TradeAPI.Connect())
+   {
+      Print('Failed to connect to exchange API');
+      return;
+   }
+
+   // Retrieve real-time market data for ZRXBTC pair
+   MqlRates rates[];
+   if (!CopyRates(_Symbol, PERIOD_CURRENT, 0, 10, rates))
+   {
+      Print('Failed to retrieve market data');
+      return;
+   }
+
+   // Analyze market trends and sentiment
+   double bitcoinDominance = calculateBitcoinDominance();
+   double zrxSentiment = calculateZRXSentiment();
+
+   // Identify trading opportunities
+   if (bitcoinDominance > 50 && zrxSentiment > 0.5)
+   {
+      // Calculate order quantity based on risk percentage
+      double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+      double riskAmount = accountBalance * riskPercentage / 100;
+      double zrxPrice = rates[0].close;
+      double positionSize = riskAmount / (zrxPrice * stopLossPercentage);
+      
+      // Place buy order
+      double stopLossPrice = zrxPrice * (1 - stopLossPercentage / 100);
+      double takeProfitPrice = zrxPrice * (1 + stopLossPercentage / 100);
+      ulong buyTicket = Trade.Buy(_Symbol, positionSize, zrxPrice, stopLossPrice, takeProfitPrice);
+      
+      if (buyTicket > 0)
+      {
+         // Track and manage portfolio
+         double openPrice = rates[0].close;
+         double portfolioPerformance = calculatePortfolioPerformance(openPrice, zrxPrice, positionSize);
+         displayPortfolioPerformance(portfolioPerformance);
+      }
+      else
+      {
+         Print('Failed to place buy order');
+      }
+   }
+   else
+   {
+      Print('No trading opportunity identified');
+   }
+
+   // Disconnect from cryptocurrency exchange API
+   TradeAPI.Disconnect();
+}
+
+// Define helper functions
+
+double calculateBitcoinDominance()
+{
+   // Implementation of bitcoin dominance calculation algorithm
+   // Returns the calculated bitcoin dominance percentage
+}
+
+double calculateZRXSentiment()
+{
+   // Implementation of ZRX sentiment calculation algorithm
+   // Returns the calculated ZRX sentiment value
+}
+
+double calculatePortfolioPerformance(double openPrice, double closePrice, double positionSize)
+{
+   // Implementation of portfolio performance calculation algorithm
+   // Returns the calculated portfolio performance value
+}
+
+void displayPortfolioPerformance(double portfolioPerformance)
+{
+   // Implementation of portfolio performance visualization
+   // Displays the portfolio performance value on the chart
+}
+
+// Define entry point of the trading robot
+
+int OnInit()
+{
+   // Initialization tasks
+   return(INIT_SUCCEEDED);
+}
+
+void OnDeinit(const int reason)
+{
+   // Cleanup tasks
+}
+
+void OnTick()
+{
+   // Trading logic
+   tradeZRXBTC();
+}
+
+// Define main program execution
+
+void OnStart()
+{
+   // Start the trading robot
+   while (!IsStopped())
+   {
+      OnTick();
+   }
+}
